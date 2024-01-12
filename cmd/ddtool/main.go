@@ -12,10 +12,11 @@ import (
 // 2nd cmd argument - API URI
 // 3rd cmd argument - API Token
 func main() {
-	if len(os.Args) != 4 {
-		log.Fatalf("incorrect arguments quantity: %d", len(os.Args)-1)
+	cmdArgs := os.Args[1:]
+	if len(cmdArgs) != 3 {
+		log.Fatalf("incorrect arguments quantity: %d", len(cmdArgs))
 	}
-	command, uri, token := os.Args[1], os.Args[2], os.Args[3]
+	command, uri, token := cmdArgs[0], cmdArgs[1], cmdArgs[2]
 	client := ddclient.Client{
 		ApiURL:   uri,
 		ApiToken: "Token " + token,
