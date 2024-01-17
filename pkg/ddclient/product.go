@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Product struct {
@@ -52,4 +56,49 @@ func (ddClient *Client) CreateProduct(productData Product) ([]byte, error) {
 		return []byte{}, err
 	}
 	return bodyText, nil
+}
+
+type FindProductResponse struct {
+	Count   int                 `json:"count"`
+	Results []FindProductResult `json:"results"`
+}
+
+type FindProductResult struct {
+	ID int `json:"id"`
+}
+
+// Searchs for DefectDojo product by exact name
+// returns project id
+func (ddClient *Client) FindProduct(name string) (int, error) {
+	client := &http.Client{}
+	requestURL := strings.Builder{}
+	requestURL.WriteString(ddClient.ApiURL)
+	requestURL.WriteString("/api/v2/products/?name_exact=")
+	requestURL.WriteString(url.QueryEscape(name))
+	req, err := http.NewRequest("GET", requestURL.String(), &bytes.Buffer{})
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", ddClient.ApiToken)
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	var response FindProductResponse
+	err = json.Unmarshal(bodyText, &response)
+	if err != nil {
+		return 0, err
+	}
+
+	if response.Count == 0 {
+		return 0, errors.New("product not found")
+	}
+	return response.Results[0].ID, nil
 }

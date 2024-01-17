@@ -41,5 +41,13 @@ func main() {
 			log.Fatalf("failed to create product: %v", err)
 		}
 		log.Printf("successfully created product: %s", result)
+	case "find_product":
+		input := bufio.NewReader(os.Stdin)
+		productToFindName, _ := input.ReadString('\n')
+		result, err := client.FindProduct(productToFindName)
+		if err != nil {
+			log.Fatalf("failed to find product: %v", err)
+		}
+		log.Printf("successfully found product: %d", result)
 	}
 }
