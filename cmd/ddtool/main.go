@@ -9,16 +9,16 @@ import (
 )
 
 // 1st cmd argument - command
-// 2nd cmd argument - API URI
+// 2nd cmd argument - API URL
 // 3rd cmd argument - API Token
 func main() {
 	cmdArgs := os.Args[1:]
 	if len(cmdArgs) != 3 {
 		log.Fatalf("incorrect arguments quantity: %d", len(cmdArgs))
 	}
-	command, uri, token := cmdArgs[0], cmdArgs[1], cmdArgs[2]
+	command, url, token := cmdArgs[0], cmdArgs[1], cmdArgs[2]
 	client := ddclient.Client{
-		ApiURL:   uri,
+		ApiURL:   url,
 		ApiToken: "Token " + token,
 	}
 	switch command {
