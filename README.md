@@ -25,6 +25,13 @@ Tag 1,Tag 2,Tag 3
 ||description||
 ||tags||
 ||product_type||
-||product_SLA||
+||product_sla||
 |find_product||Finds DefectDojo product by provided product name|
 ||name||
+|create_engagement||Creates new DefectDojo engagement with provided details|
+||product_id||
+||name||
+||description||
+||commit_hash||
+||branch_tag||
+||status|`Not Started`/`Blocked`/`Cancelled`/`Completed`/`In Progress`/`On Hold`/`Waiting for Resource`|
