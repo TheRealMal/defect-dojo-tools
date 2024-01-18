@@ -6,10 +6,13 @@ type Client struct {
 }
 
 type ResponseOnlyWithID struct {
-	ID int `json:"id"`
+	ID     int `json:"id"`
+	TestID int `json:"test_id"`
 }
 
 type DDClient interface {
 	CreateProduct(Product) ([]byte, error)
 	FindProduct(string) (int, error)
+	CreateEngagement(Engagement) (int, error)
+	UploadScanReport(int, string, string) (int, error)
 }

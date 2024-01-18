@@ -66,6 +66,14 @@ func main() {
 			log.Fatalf("failed to create engagement: %v", err)
 		}
 		log.Printf("successfully created engagement: %d", result)
+	case "upload_report":
+		var engagementID, format, filename, closeOldFindings string
+		multipleInput(&engagementID, &format, &filename, &closeOldFindings)
+		result, err := client.UploadScanReport(engagementID, format, filename, closeOldFindings)
+		if err != nil {
+			log.Fatalf("failed to upload report: %v", err)
+		}
+		log.Printf("successfully uploaded report: %d", result)
 	}
 }
 

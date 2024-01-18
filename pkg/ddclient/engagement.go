@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
 )
 
 type Engagement struct {
@@ -70,4 +73,53 @@ func (ddClient *Client) CreateEngagement(engagementData Engagement) (int, error)
 		return -1, err
 	}
 	return response.ID, nil
+}
+
+func (ddClient *Client) UploadScanReport(engagementID string, format string, filename string, closeOld string) (int, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return -1, err
+	}
+	defer file.Close()
+
+	// Prepare multipart body
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	partFile, _ := writer.CreateFormFile("file", filename)
+	io.Copy(partFile, file)
+	partActive, _ := writer.CreateFormField("active")
+	io.Copy(partActive, strings.NewReader("true"))
+	partVerified, _ := writer.CreateFormField("verified")
+	io.Copy(partVerified, strings.NewReader("false"))
+	partScanType, _ := writer.CreateFormField("scan_type")
+	io.Copy(partScanType, strings.NewReader("SARIF"))
+	partEngagement, _ := writer.CreateFormField("engagement")
+	io.Copy(partEngagement, strings.NewReader(engagementID))
+	partCloseOld, _ := writer.CreateFormField("close_old_findings")
+	io.Copy(partCloseOld, strings.NewReader(closeOld))
+	writer.Close()
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", ddClient.ApiURL+"/api/v2/import-scan/", body)
+	if err != nil {
+		return -1, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", ddClient.ApiToken)
+	resp, err := client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return -1, err
+	}
+	var response ResponseOnlyWithID
+	err = json.Unmarshal(bodyText, &response)
+	if err != nil {
+		return -1, err
+	}
+	return response.TestID, nil
 }
