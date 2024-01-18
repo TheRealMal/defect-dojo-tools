@@ -19,7 +19,7 @@ Tag 1,Tag 2,Tag 3
 ```
 ## Commands list
 |Command|Inputs|Explanation|
-|-:|:-:|:-|
+|-:|:-:|:-:|
 |create_product||Creates new DefectDojo product with provided details|
 ||name||
 ||description||
