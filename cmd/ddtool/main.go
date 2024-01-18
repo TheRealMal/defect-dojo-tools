@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 // 1st cmd argument - command
@@ -23,12 +24,8 @@ func main() {
 	}
 	switch command {
 	case "create_product":
-		input := bufio.NewReader(os.Stdin)
-		name, _ := input.ReadString('\n')
-		description, _ := input.ReadString('\n')
-		commaSeparatedTags, _ := input.ReadString('\n')
-		productType, _ := input.ReadString('\n')
-		productSla, _ := input.ReadString('\n')
+		var name, description, commaSeparatedTags, productType, productSla string
+		multipleInput(&name, &description, &commaSeparatedTags, &productType, &productSla)
 		productData := ddclient.Product{
 			Name:             name,
 			Description:      description,
@@ -40,14 +37,42 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create product: %v", err)
 		}
-		log.Printf("successfully created product: %s", result)
+		log.Printf("successfully created product: %d", result)
 	case "find_product":
-		input := bufio.NewReader(os.Stdin)
-		productToFindName, _ := input.ReadString('\n')
+		var productToFindName string
+		multipleInput(&productToFindName)
 		result, err := client.FindProduct(productToFindName)
 		if err != nil {
 			log.Fatalf("failed to find product: %v", err)
 		}
 		log.Printf("successfully found product: %d", result)
+	case "create_engagement":
+		var productID, name, description, commitHash, branchTag, status string
+		multipleInput(&productID, &name, &description, &commitHash, &branchTag, &status)
+		today := time.Now()
+		engagementData := ddclient.Engagement{
+			Name:           name,
+			Description:    description,
+			Product:        productID,
+			CommitHash:     commitHash,
+			BranchTag:      branchTag,
+			TargetStart:    today.Format("2006-01-02"),
+			TargetEnd:      today.AddDate(0, 1, 0).Format("2006-01-02"),
+			Status:         status,
+			EngagementType: "CI/CD",
+		}
+		result, err := client.CreateEngagement(engagementData)
+		if err != nil {
+			log.Fatalf("failed to create engagement: %v", err)
+		}
+		log.Printf("successfully created engagement: %d", result)
+	}
+}
+
+func multipleInput(inputVariables ...*string) {
+	input := bufio.NewScanner(os.Stdin)
+	for _, variable := range inputVariables {
+		input.Scan()
+		*variable = input.Text()
 	}
 }

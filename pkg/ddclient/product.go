@@ -35,40 +35,48 @@ type Product struct {
 	Regulations                   []int    `json:"regulations,omitempty"`
 }
 
-// Creates DefectDojo product with provided data
-func (ddClient *Client) CreateProduct(productData Product) ([]byte, error) {
+// Creates DefectDojo product with provided data.
+//
+// You can skip error handling and check
+// if returned id != -1
+func (ddClient *Client) CreateProduct(productData Product) (int, error) {
 	client := &http.Client{}
 	bodyData, _ := json.Marshal(productData)
 	req, err := http.NewRequest("POST", ddClient.ApiURL+"/api/v2/products/", bytes.NewBuffer(bodyData))
 	if err != nil {
-		return []byte{}, err
+		return -1, err
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", ddClient.ApiToken)
 	resp, err := client.Do(req)
 	if err != nil {
-		return []byte{}, err
+		return -1, err
 	}
 	defer resp.Body.Close()
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, err
+		return -1, err
 	}
-	return bodyText, nil
+
+	var response ResponseOnlyWithID
+	err = json.Unmarshal(bodyText, &response)
+	if err != nil {
+		return -1, err
+	}
+	return response.ID, nil
 }
 
 type FindProductResponse struct {
-	Count   int                 `json:"count"`
-	Results []FindProductResult `json:"results"`
-}
-
-type FindProductResult struct {
-	ID int `json:"id"`
+	Count   int                  `json:"count"`
+	Results []ResponseOnlyWithID `json:"results"`
 }
 
 // Searchs for DefectDojo product by exact name
-// returns project id
+// returns project id.
+//
+// You can skip error handling and check
+// if returned id != -1
 func (ddClient *Client) FindProduct(name string) (int, error) {
 	client := &http.Client{}
 	requestURL := strings.Builder{}
@@ -77,28 +85,28 @@ func (ddClient *Client) FindProduct(name string) (int, error) {
 	requestURL.WriteString(url.QueryEscape(name))
 	req, err := http.NewRequest("GET", requestURL.String(), &bytes.Buffer{})
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", ddClient.ApiToken)
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	defer resp.Body.Close()
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	var response FindProductResponse
 	err = json.Unmarshal(bodyText, &response)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 
 	if response.Count == 0 {
-		return 0, errors.New("product not found")
+		return -1, errors.New("product not found")
 	}
 	return response.Results[0].ID, nil
 }

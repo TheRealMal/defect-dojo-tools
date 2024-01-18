@@ -5,6 +5,11 @@ type Client struct {
 	ApiURL   string
 }
 
+type ResponseOnlyWithID struct {
+	ID int `json:"id"`
+}
+
 type DDClient interface {
 	CreateProduct(Product) ([]byte, error)
+	FindProduct(string) (int, error)
 }
