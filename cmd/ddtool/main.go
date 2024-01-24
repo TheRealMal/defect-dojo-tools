@@ -47,6 +47,25 @@ func main() {
 			log.Fatalf("failed to find product: %v", err)
 		}
 		fmt.Printf("%d", result)
+	case "find_or_create_product":
+		var name, description, commaSeparatedTags, productType, productSla string
+		multipleInput(&name, &description, &commaSeparatedTags, &productType, &productSla)
+		productData := ddclient.Product{
+			Name:             name,
+			Description:      description,
+			Tags:             strings.Split(commaSeparatedTags, ","),
+			ProdType:         productType,
+			SlaConfiguration: productSla,
+		}
+		result, err := client.FindProduct(name)
+		if err == nil {
+			fmt.Printf("%d", result)
+		}
+		result, err = client.CreateProduct(productData)
+		if err != nil {
+			log.Fatalf("failed to create product: %v", err)
+		}
+		fmt.Printf("%d", result)
 	case "create_engagement":
 		var productID, name, description, commitHash, branchTag, status string
 		multipleInput(&productID, &name, &description, &commitHash, &branchTag, &status)
