@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"defect-dojo-tools/pkg/ddclient"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -37,7 +38,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create product: %v", err)
 		}
-		log.Printf("successfully created product: %d", result)
+		fmt.Printf("%d", result)
 	case "find_product":
 		var productToFindName string
 		multipleInput(&productToFindName)
@@ -45,7 +46,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to find product: %v", err)
 		}
-		log.Printf("successfully found product: %d", result)
+		fmt.Printf("%d", result)
 	case "create_engagement":
 		var productID, name, description, commitHash, branchTag, status string
 		multipleInput(&productID, &name, &description, &commitHash, &branchTag, &status)
@@ -65,7 +66,15 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create engagement: %v", err)
 		}
-		log.Printf("successfully created engagement: %d", result)
+		fmt.Printf("%d", result)
+	case "find_engagement":
+		var productID, engagementToFindName string
+		multipleInput(&productID, &engagementToFindName)
+		result, err := client.FindEngagement(productID, engagementToFindName)
+		if err != nil {
+			log.Fatalf("failed to find engagement: %v", err)
+		}
+		fmt.Printf("%d", result)
 	case "upload_report":
 		var engagementID, format, filename, closeOldFindings string
 		multipleInput(&engagementID, &format, &filename, &closeOldFindings)
@@ -73,7 +82,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to upload report: %v", err)
 		}
-		log.Printf("successfully uploaded report: %d", result)
+		fmt.Printf("%d", result)
 	}
 }
 

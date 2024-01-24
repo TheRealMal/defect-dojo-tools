@@ -7,8 +7,11 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Engagement struct {
@@ -75,6 +78,47 @@ func (ddClient *Client) CreateEngagement(engagementData Engagement) (int, error)
 	return response.ID, nil
 }
 
+// Searchs for DefectDojo engagement by product id and name
+// returns engagement id.
+//
+// You can skip error handling and check
+// if returned id != -1
+func (ddClient *Client) FindEngagement(product string, name string) (int, error) {
+	client := &http.Client{}
+	requestURL := strings.Builder{}
+	requestURL.WriteString(ddClient.ApiURL)
+	requestURL.WriteString("/api/v2/engagements/?product=")
+	requestURL.WriteString(product)
+	requestURL.WriteString("&name=")
+	requestURL.WriteString(url.QueryEscape(name))
+	req, err := http.NewRequest("GET", requestURL.String(), &bytes.Buffer{})
+	if err != nil {
+		return -1, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", ddClient.ApiToken)
+	resp, err := client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return -1, err
+	}
+	var response FindResponse
+	err = json.Unmarshal(bodyText, &response)
+	if err != nil {
+		return -1, err
+	}
+
+	if response.Count == 0 {
+		return -1, errors.New("engagement not found")
+	}
+	return response.Results[0].ID, nil
+}
+
 func (ddClient *Client) UploadScanReport(engagementID string, format string, filename string, closeOld string) (int, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -92,7 +136,7 @@ func (ddClient *Client) UploadScanReport(engagementID string, format string, fil
 	partVerified, _ := writer.CreateFormField("verified")
 	io.Copy(partVerified, strings.NewReader("false"))
 	partScanType, _ := writer.CreateFormField("scan_type")
-	io.Copy(partScanType, strings.NewReader("SARIF"))
+	io.Copy(partScanType, strings.NewReader(format))
 	partEngagement, _ := writer.CreateFormField("engagement")
 	io.Copy(partEngagement, strings.NewReader(engagementID))
 	partCloseOld, _ := writer.CreateFormField("close_old_findings")

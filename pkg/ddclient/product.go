@@ -67,11 +67,6 @@ func (ddClient *Client) CreateProduct(productData Product) (int, error) {
 	return response.ID, nil
 }
 
-type FindProductResponse struct {
-	Count   int                  `json:"count"`
-	Results []ResponseOnlyWithID `json:"results"`
-}
-
 // Searchs for DefectDojo product by exact name
 // returns project id.
 //
@@ -99,7 +94,7 @@ func (ddClient *Client) FindProduct(name string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	var response FindProductResponse
+	var response FindResponse
 	err = json.Unmarshal(bodyText, &response)
 	if err != nil {
 		return -1, err
