@@ -3,7 +3,6 @@ package ddclient
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -69,7 +68,7 @@ func (ddClient *Client) CreateEngagement(engagementData Engagement) (int, error)
 	if err != nil {
 		return -1, err
 	}
-	fmt.Println(string(bodyText))
+
 	var response ResponseOnlyWithID
 	err = json.Unmarshal(bodyText, &response)
 	if err != nil {
