@@ -60,6 +60,7 @@ func main() {
 		result, err := client.FindProduct(name)
 		if err == nil {
 			fmt.Printf("%d", result)
+			return
 		}
 		result, err = client.CreateProduct(productData)
 		if err != nil {

@@ -19,6 +19,6 @@ type DDClient interface {
 	CreateProduct(Product) ([]byte, error)
 	FindProduct(string) (int, error)
 	CreateEngagement(Engagement) (int, error)
-
+	FindEngagement(string, string) (int, error)
 	UploadScanReport(int, string, string) (int, error)
 }
