@@ -64,6 +64,9 @@ func (ddClient *Client) CreateProduct(productData Product) (int, error) {
 	if err != nil {
 		return -1, err
 	}
+	if response.ID == 0 {
+		return -1, errors.New("failed to create product")
+	}
 	return response.ID, nil
 }
 

@@ -75,6 +75,10 @@ func (ddClient *Client) CreateEngagement(engagementData Engagement) (int, error)
 	if err != nil {
 		return -1, err
 	}
+
+	if response.ID == 0 {
+		return -1, errors.New("failed to create engagement")
+	}
 	return response.ID, nil
 }
 
